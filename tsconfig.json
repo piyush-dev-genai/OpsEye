@@ -1,0 +1,16 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/config" },
+    { "path": "./packages/types" },
+    { "path": "./packages/kafka" },
+    { "path": "./packages/llm" },
+    { "path": "./packages/vector-store" },
+    { "path": "./packages/retrieval" },
+    { "path": "./packages/observability" },
+    { "path": "./packages/utils" },
+    { "path": "./apps/api" },
+    { "path": "./apps/ingestion-worker" },
+    { "path": "./apps/query-worker" }
+  ]
+}
