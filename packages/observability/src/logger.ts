@@ -69,17 +69,16 @@ function normalizeContext(
     return {};
   }
 
-  return Object.entries(context).reduce<Record<string, string | number | boolean | null>>(
-    (accumulator, [key, value]) => {
-      if (value === undefined) {
-        return accumulator;
-      }
-
-      accumulator[key] = value;
+  return Object.entries(context).reduce<
+    Record<string, string | number | boolean | null>
+  >((accumulator, [key, value]) => {
+    if (value === undefined) {
       return accumulator;
-    },
-    {},
-  );
+    }
+
+    accumulator[key] = value;
+    return accumulator;
+  }, {});
 }
 
 function createLogFormatter() {
@@ -117,7 +116,9 @@ function createLogFormatter() {
 
     if (splat !== undefined && splat.length > 0) {
       structuredEntry.splat = splat.map((value) =>
-        value instanceof Error ? serializeError(value) : inspect(value, false, 4, false),
+        value instanceof Error
+          ? serializeError(value)
+          : inspect(value, false, 4, false),
       );
     }
 

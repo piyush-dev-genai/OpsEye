@@ -31,10 +31,7 @@ export interface Metrics {
   contentType(): string;
 }
 
-function applyDefaultLabels(
-  registry: Registry,
-  options: MetricsOptions,
-): void {
+function applyDefaultLabels(registry: Registry, options: MetricsOptions): void {
   registry.setDefaultLabels({
     service: options.serviceName,
     ...(options.defaultLabels ?? {}),

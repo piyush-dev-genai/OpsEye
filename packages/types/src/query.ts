@@ -1,6 +1,5 @@
 import type { DeploymentEnvironment } from "./log";
 
-
 export interface QueryFilters {
   readonly service?: string;
   readonly environment?: DeploymentEnvironment;

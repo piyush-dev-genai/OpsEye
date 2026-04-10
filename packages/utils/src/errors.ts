@@ -16,7 +16,10 @@ export class AppError extends Error {
   public readonly metadata: ErrorMetadata | undefined;
 
   public constructor(options: AppErrorOptions) {
-    super(options.message, options.cause !== undefined ? { cause: options.cause } : undefined);
+    super(
+      options.message,
+      options.cause !== undefined ? { cause: options.cause } : undefined,
+    );
     this.name = "AppError";
     this.code = options.code;
     this.statusCode = options.statusCode ?? 500;
@@ -28,7 +31,10 @@ export function isAppError(error: unknown): error is AppError {
   return error instanceof AppError;
 }
 
-export function toError(error: unknown, fallbackMessage = "Unknown error"): Error {
+export function toError(
+  error: unknown,
+  fallbackMessage = "Unknown error",
+): Error {
   if (error instanceof Error) {
     return error;
   }

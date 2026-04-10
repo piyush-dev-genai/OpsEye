@@ -7,5 +7,10 @@
   "scripts": {
     "build": "tsc -b",
     "typecheck": "tsc -b --pretty"
+  },
+  "dependencies": {
+    "@opseye/config": "0.1.0",
+    "@opseye/types": "0.1.0",
+    "kafkajs": "^2.2.4"
   }
 }
