@@ -5,7 +5,7 @@ import globals from "globals";
 
 export default [
   {
-    ignores: ["**/dist/**", "**/*.d.ts", "**/*.tsbuildinfo"]
+    ignores: ["**/dist/**", "**/*.d.ts", "**/*.tsbuildinfo"],
   },
   eslint.configs.recommended,
   {
@@ -14,17 +14,27 @@ export default [
       parser: tsParser,
       parserOptions: {
         ecmaVersion: "latest",
-        sourceType: "module"
+        sourceType: "module",
       },
       globals: {
-        ...globals.node
-      }
+        ...globals.node,
+      },
     },
     plugins: {
-      "@typescript-eslint": tseslint
+      "@typescript-eslint": tseslint,
     },
     rules: {
-      "@typescript-eslint/no-explicit-any": "error"
-    }
-  }
+      "no-undef": "off",
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
+      "@typescript-eslint/no-explicit-any": "error",
+    },
+  },
 ];
