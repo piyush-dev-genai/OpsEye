@@ -33,6 +33,7 @@ export interface EnvironmentConfig {
   readonly kafkaGroupIdPrefix: string;
   readonly llmApiKey?: string;
   readonly llmBaseUrl?: string;
+  readonly llmApiVersion?: string;
   readonly llmModel: string;
   readonly vectorStoreUrl?: string;
   readonly vectorStoreIndex: string;
@@ -246,6 +247,7 @@ export function loadEnvironment(
   );
   const llmApiKey = readString(source, "LLM_API_KEY", issues);
   const llmBaseUrl = readString(source, "LLM_BASE_URL", issues);
+  const llmApiVersion = readString(source, "LLM_API_VERSION", issues);
   const llmModel = readString(source, "LLM_MODEL", issues, {
     defaultValue: "gpt-4.1-mini",
   });
@@ -272,6 +274,7 @@ export function loadEnvironment(
     vectorStoreIndex: requireValue(vectorStoreIndex, "vectorStoreIndex"),
     ...(llmApiKey !== undefined ? { llmApiKey } : {}),
     ...(llmBaseUrl !== undefined ? { llmBaseUrl } : {}),
+    ...(llmApiVersion !== undefined ? { llmApiVersion } : {}),
     ...(vectorStoreUrl !== undefined ? { vectorStoreUrl } : {}),
   };
 }

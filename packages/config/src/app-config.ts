@@ -20,6 +20,7 @@ export interface KafkaTopicConfig {
 export interface LlmConfig {
   readonly apiKey?: string;
   readonly baseUrl?: string;
+  readonly apiVersion?: string;
   readonly model: string;
 }
 
@@ -73,6 +74,9 @@ export function createAppConfig(
         : {}),
       ...(environment.llmBaseUrl !== undefined
         ? { baseUrl: environment.llmBaseUrl }
+        : {}),
+      ...(environment.llmApiVersion !== undefined
+        ? { apiVersion: environment.llmApiVersion }
         : {}),
     },
     vectorStore: {
