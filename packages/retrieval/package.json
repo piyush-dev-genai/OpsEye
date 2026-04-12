@@ -7,5 +7,9 @@
   "scripts": {
     "build": "tsc -b",
     "typecheck": "tsc -b --pretty"
+  },
+  "dependencies": {
+    "@opseye/types": "0.1.0",
+    "@opseye/vector-store": "0.1.0"
   }
 }
