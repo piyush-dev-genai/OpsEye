@@ -24,7 +24,9 @@ export class IngestPublisherService {
     this.topic = getTopic("logsRaw", appConfig);
   }
 
-  public async publishLogs(input: PublishLogsInput): Promise<PublishLogsResult> {
+  public async publishLogs(
+    input: PublishLogsInput,
+  ): Promise<PublishLogsResult> {
     for (const [index, log] of input.logs.entries()) {
       const key =
         log.traceId !== undefined && log.traceId.length > 0

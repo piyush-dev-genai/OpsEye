@@ -26,7 +26,9 @@ export function createApp(dependencies: ApiAppDependencies): Express {
   app.use(requestIdMiddleware());
   app.use(createHealthRoute(dependencies.appConfig));
   app.use(createIngestRoute(dependencies.ingestPublisher, dependencies.logger));
-  app.use(createQueryRoute(dependencies.queryOrchestrator, dependencies.logger));
+  app.use(
+    createQueryRoute(dependencies.queryOrchestrator, dependencies.logger),
+  );
   app.use(createErrorMiddleware(dependencies.logger));
 
   return app;

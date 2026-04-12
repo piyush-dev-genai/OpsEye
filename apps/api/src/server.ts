@@ -23,7 +23,11 @@ export async function startServer(): Promise<Server> {
     appConfig,
     logger,
     ingestPublisher: new IngestPublisherService(producer, logger, appConfig),
-    queryOrchestrator: new QueryOrchestratorService(producer, logger, appConfig),
+    queryOrchestrator: new QueryOrchestratorService(
+      producer,
+      logger,
+      appConfig,
+    ),
   });
 
   const server = await new Promise<Server>((resolve) => {
@@ -70,7 +74,8 @@ export async function startServer(): Promise<Server> {
       void shutdown(signal).catch((error: unknown) => {
         logger.error("Failed during shutdown.", {
           signal,
-          errorMessage: error instanceof Error ? error.message : "Unknown error",
+          errorMessage:
+            error instanceof Error ? error.message : "Unknown error",
         });
         process.exitCode = 1;
       });
@@ -83,7 +88,7 @@ export async function startServer(): Promise<Server> {
 if (require.main === module) {
   void startServer().catch((error: unknown) => {
     const message =
-      error instanceof Error ? error.stack ?? error.message : "Unknown error";
+      error instanceof Error ? (error.stack ?? error.message) : "Unknown error";
     process.stderr.write(`${message}\n`);
     process.exit(1);
   });

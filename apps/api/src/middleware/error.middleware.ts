@@ -16,7 +16,9 @@ export function createErrorMiddleware(logger: AppLogger): ErrorRequestHandler {
       path: request.path,
       errorName: normalizedError.name,
       errorMessage: normalizedError.message,
-      ...(normalizedError.stack !== undefined ? { errorStack: normalizedError.stack } : {}),
+      ...(normalizedError.stack !== undefined
+        ? { errorStack: normalizedError.stack }
+        : {}),
     });
 
     if (error instanceof RequestValidationError) {
@@ -43,8 +45,8 @@ export function createErrorMiddleware(logger: AppLogger): ErrorRequestHandler {
     }
 
     const isBodyParserSyntaxError =
-    normalizedError instanceof SyntaxError &&
-    Object.prototype.hasOwnProperty.call(normalizedError, "body");
+      normalizedError instanceof SyntaxError &&
+      Object.prototype.hasOwnProperty.call(normalizedError, "body");
 
     if (isBodyParserSyntaxError) {
       response.status(400).json({

@@ -24,7 +24,9 @@ export class QueryOrchestratorService {
     this.topic = getTopic("queryRequested", appConfig);
   }
 
-  public async submitQuery(input: SubmitQueryInput): Promise<SubmitQueryResult> {
+  public async submitQuery(
+    input: SubmitQueryInput,
+  ): Promise<SubmitQueryResult> {
     await this.producer.publishMessage({
       topic: this.topic,
       key: input.queryRequest.id,

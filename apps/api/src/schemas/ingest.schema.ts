@@ -23,8 +23,10 @@ export const rawLogEventSchema = z.object({
 });
 
 export const ingestRequestSchema = z.object({
-  logs: z.array(rawLogEventSchema).min(1, "At least one log entry is required.")
-  .max(500, "A maximum of 500 log entries is allowed per request."),
+  logs: z
+    .array(rawLogEventSchema)
+    .min(1, "At least one log entry is required.")
+    .max(500, "A maximum of 500 log entries is allowed per request."),
 });
 
 export type IngestRequestBody = z.infer<typeof ingestRequestSchema>;
