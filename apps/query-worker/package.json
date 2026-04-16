@@ -7,5 +7,15 @@
   "scripts": {
     "build": "tsc -b",
     "typecheck": "tsc -b --pretty"
+  },
+  "dependencies": {
+    "@langchain/langgraph": "^0.2.39",
+    "@opseye/config": "0.1.0",
+    "@opseye/kafka": "0.1.0",
+    "@opseye/llm": "0.1.0",
+    "@opseye/observability": "0.1.0",
+    "@opseye/retrieval": "0.1.0",
+    "@opseye/types": "0.1.0",
+    "@opseye/vector-store": "0.1.0"
   }
 }

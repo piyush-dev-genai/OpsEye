@@ -493,7 +493,7 @@ export class RedisVectorRepository {
       "SORTBY",
       "vectorDistance",
       "RETURN",
-      "11",
+      "12",
       "chunkId",
       "content",
       "embeddingModel",
