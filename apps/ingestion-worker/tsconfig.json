@@ -5,5 +5,28 @@
     "rootDir": "./src",
     "outDir": "./dist"
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts"],
+  "references": [
+    {
+      "path": "../../packages/config"
+    },
+    {
+      "path": "../../packages/kafka"
+    },
+    {
+      "path": "../../packages/llm"
+    },
+    {
+      "path": "../../packages/observability"
+    },
+    {
+      "path": "../../packages/types"
+    },
+    {
+      "path": "../../packages/utils"
+    },
+    {
+      "path": "../../packages/vector-store"
+    }
+  ]
 }
