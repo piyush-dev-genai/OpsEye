@@ -5,10 +5,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { AppConfig } from "@opseye/config";
 import type { AppLogger } from "@opseye/observability";
+import type { PersistedQueryResult } from "@opseye/types";
 
 import { createApp } from "../app";
 import type { IngestPublisherService } from "../services/ingest-publisher.service";
 import type { QueryOrchestratorService } from "../services/query-orchestrator.service";
+import type { QueryResultRepository } from "@opseye/vector-store";
 
 function createTestLogger(): AppLogger {
   return {
@@ -52,6 +54,7 @@ function createTestConfig(): AppConfig {
     vectorStore: {
       indexName: "opseye-test",
     },
+    queryResults: {},
     observability: {
       serviceName: "api",
       environment: "development",
@@ -98,10 +101,12 @@ describe.skipIf(!canRunHttpServer)("API routes", () => {
   const logger = createTestLogger();
   const publishLogs = vi.fn<IngestPublisherService["publishLogs"]>();
   const submitQuery = vi.fn<QueryOrchestratorService["submitQuery"]>();
+  const getByQueryId = vi.fn<QueryResultRepository["getByQueryId"]>();
 
   beforeEach(() => {
     publishLogs.mockReset();
     submitQuery.mockReset();
+    getByQueryId.mockReset();
   });
 
   it("accepts ingest requests and propagates request IDs", async () => {
@@ -119,6 +124,9 @@ describe.skipIf(!canRunHttpServer)("API routes", () => {
       queryOrchestrator: {
         submitQuery,
       } as unknown as QueryOrchestratorService,
+      queryResultRepository: {
+        getByQueryId,
+      } as unknown as QueryResultRepository,
     });
     const server = await startServer(app);
     let response: SupertestResponse;
@@ -174,6 +182,9 @@ describe.skipIf(!canRunHttpServer)("API routes", () => {
       queryOrchestrator: {
         submitQuery,
       } as unknown as QueryOrchestratorService,
+      queryResultRepository: {
+        getByQueryId,
+      } as unknown as QueryResultRepository,
     });
     const server = await startServer(app);
     let response: SupertestResponse;
@@ -218,6 +229,9 @@ describe.skipIf(!canRunHttpServer)("API routes", () => {
       queryOrchestrator: {
         submitQuery,
       } as unknown as QueryOrchestratorService,
+      queryResultRepository: {
+        getByQueryId,
+      } as unknown as QueryResultRepository,
     });
     const server = await startServer(app);
     let response: SupertestResponse;
@@ -242,9 +256,7 @@ describe.skipIf(!canRunHttpServer)("API routes", () => {
 
     expect(response.status).toBe(202);
     expect(response.headers["x-request-id"]).toBe("req-test-2");
-    expect(response.body.requestId).toBe("req-test-2");
-    expect(response.body.status).toBe("accepted");
-    expect(response.body.topic).toBe("query.requested");
+    expect(response.body.status).toBe("queued");
     expect(response.body.queryId).toMatch(/^query_/);
     expect(submitQuery).toHaveBeenCalledTimes(1);
     expect(submitQuery.mock.calls[0]?.[0]).toMatchObject({
@@ -273,6 +285,9 @@ describe.skipIf(!canRunHttpServer)("API routes", () => {
       queryOrchestrator: {
         submitQuery,
       } as unknown as QueryOrchestratorService,
+      queryResultRepository: {
+        getByQueryId,
+      } as unknown as QueryResultRepository,
     });
     const server = await startServer(app);
     let response: SupertestResponse;
@@ -296,5 +311,147 @@ describe.skipIf(!canRunHttpServer)("API routes", () => {
     expect(response.body.error.code).toBe("request_validation_error");
     expect(response.body.error.requestId).toBe("req-invalid-query");
     expect(submitQuery).not.toHaveBeenCalled();
+  });
+
+  it("returns queued query result status", async () => {
+    const persisted: PersistedQueryResult = {
+      queryId: "query_123",
+      query: "What caused the incident?",
+      requestedAt: "2026-04-17T10:00:00.000Z",
+      updatedAt: "2026-04-17T10:00:05.000Z",
+      status: "queued",
+    };
+    getByQueryId.mockResolvedValue(persisted);
+
+    const app = createApp({
+      appConfig: createTestConfig(),
+      logger,
+      ingestPublisher: {
+        publishLogs,
+      } as unknown as IngestPublisherService,
+      queryOrchestrator: {
+        submitQuery,
+      } as unknown as QueryOrchestratorService,
+      queryResultRepository: {
+        getByQueryId,
+      } as unknown as QueryResultRepository,
+    });
+    const server = await startServer(app);
+    let response: SupertestResponse;
+
+    try {
+      response = await request(server)
+        .get("/query/query_123")
+        .set("x-request-id", "req-query-get-1");
+    } finally {
+      await stopServer(server);
+    }
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      queryId: "query_123",
+      status: "queued",
+    });
+  });
+
+  it("returns completed query results", async () => {
+    const persisted: PersistedQueryResult = {
+      queryId: "query_456",
+      query: "What caused the incident?",
+      requestedAt: "2026-04-17T10:00:00.000Z",
+      updatedAt: "2026-04-17T10:00:10.000Z",
+      status: "completed",
+      result: {
+        queryId: "query_456",
+        generatedAt: "2026-04-17T10:00:10.000Z",
+        answer: "Likely database timeout saturation.",
+        citations: ["chunk-1"],
+        confidence: "medium",
+        rootCauseHypothesis: "Database latency spiked under load.",
+        evidenceSummary: ["chunk-1: connection acquisition timeouts"],
+        uncertainty: "Evidence is limited to indexed chunks.",
+        recommendedNextSteps: ["Inspect the primary database latency."],
+        references: [
+          {
+            chunkId: "chunk-1",
+            service: "checkout-api",
+            environment: "production",
+            timestamp: "2026-04-17T10:00:01.000Z",
+            level: "error",
+            reason: "Highest-ranked chunk",
+            score: 0.91,
+          },
+        ],
+      },
+    };
+    getByQueryId.mockResolvedValue(persisted);
+
+    const app = createApp({
+      appConfig: createTestConfig(),
+      logger,
+      ingestPublisher: {
+        publishLogs,
+      } as unknown as IngestPublisherService,
+      queryOrchestrator: {
+        submitQuery,
+      } as unknown as QueryOrchestratorService,
+      queryResultRepository: {
+        getByQueryId,
+      } as unknown as QueryResultRepository,
+    });
+    const server = await startServer(app);
+    let response: SupertestResponse;
+
+    try {
+      response = await request(server)
+        .get("/query/query_456")
+        .set("x-request-id", "req-query-get-2");
+    } finally {
+      await stopServer(server);
+    }
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      queryId: "query_456",
+      status: "completed",
+      result: persisted.result,
+    });
+  });
+
+  it("returns 404 when a persisted query result is missing", async () => {
+    getByQueryId.mockResolvedValue(null);
+
+    const app = createApp({
+      appConfig: createTestConfig(),
+      logger,
+      ingestPublisher: {
+        publishLogs,
+      } as unknown as IngestPublisherService,
+      queryOrchestrator: {
+        submitQuery,
+      } as unknown as QueryOrchestratorService,
+      queryResultRepository: {
+        getByQueryId,
+      } as unknown as QueryResultRepository,
+    });
+    const server = await startServer(app);
+    let response: SupertestResponse;
+
+    try {
+      response = await request(server)
+        .get("/query/query_missing")
+        .set("x-request-id", "req-query-get-404");
+    } finally {
+      await stopServer(server);
+    }
+
+    expect(response.status).toBe(404);
+    expect(response.body).toEqual({
+      error: {
+        code: "query_result_not_found",
+        message: "Query result was not found.",
+        requestId: "req-query-get-404",
+      },
+    });
   });
 });

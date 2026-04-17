@@ -1,6 +1,9 @@
 import { createAppConfig } from "@opseye/config";
 import { createLogger } from "@opseye/observability";
-import { RedisVectorRepository } from "@opseye/vector-store";
+import {
+  QueryResultRepository,
+  RedisVectorRepository,
+} from "@opseye/vector-store";
 
 import { createQueryConsumer } from "./consumer/query.consumer";
 import { AnswerService } from "./services/answer.service";
@@ -18,6 +21,8 @@ export async function startQueryWorker(): Promise<void> {
   });
 
   const vectorRepository = new RedisVectorRepository({ appConfig });
+  const queryResultRepository = new QueryResultRepository({ appConfig });
+  await queryResultRepository.ensureConnected();
   const retrievalService = new RetrievalService(
     vectorRepository,
     logger,
@@ -38,6 +43,7 @@ export async function startQueryWorker(): Promise<void> {
     appConfig,
     logger,
     workflow,
+    queryResultRepository,
   });
 
   let shuttingDown = false;
@@ -52,6 +58,7 @@ export async function startQueryWorker(): Promise<void> {
 
     await queryConsumer.disconnect();
     await retrievalService.disconnect();
+    await queryResultRepository.disconnect();
 
     logger.info("Query worker stopped.");
   };

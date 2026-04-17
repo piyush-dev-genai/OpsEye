@@ -38,6 +38,7 @@ export interface EnvironmentConfig {
   readonly llmEmbeddingModel: string;
   readonly vectorStoreUrl?: string;
   readonly vectorStoreIndex: string;
+  readonly queryResultTtlSeconds?: number;
 }
 
 export class EnvironmentValidationError extends Error {
@@ -260,6 +261,15 @@ export function loadEnvironment(
   const vectorStoreIndex = readString(source, "VECTOR_STORE_INDEX", issues, {
     defaultValue: "opseye",
   });
+  const queryResultTtlSeconds = readNumber(
+    source,
+    "QUERY_RESULT_TTL_SECONDS",
+    issues,
+    {
+      integer: true,
+      min: 1,
+    },
+  );
 
   if (issues.length > 0) {
     throw new EnvironmentValidationError(issues);
@@ -278,6 +288,7 @@ export function loadEnvironment(
     llmChatModel: requireValue(llmChatModel, "llmChatModel"),
     llmEmbeddingModel: requireValue(llmEmbeddingModel, "llmEmbeddingModel"),
     vectorStoreIndex: requireValue(vectorStoreIndex, "vectorStoreIndex"),
+    ...(queryResultTtlSeconds !== undefined ? { queryResultTtlSeconds } : {}),
     ...(llmApiKey !== undefined ? { llmApiKey } : {}),
     ...(llmBaseUrl !== undefined ? { llmBaseUrl } : {}),
     ...(llmApiVersion !== undefined ? { llmApiVersion } : {}),

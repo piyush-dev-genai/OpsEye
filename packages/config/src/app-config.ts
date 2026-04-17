@@ -30,6 +30,10 @@ export interface VectorStoreConfig {
   readonly indexName: string;
 }
 
+export interface QueryResultConfig {
+  readonly ttlSeconds?: number;
+}
+
 export interface ObservabilityConfig {
   readonly serviceName: string;
   readonly environment: EnvironmentConfig["appEnv"];
@@ -43,6 +47,7 @@ export interface AppConfig {
   readonly topics: KafkaTopicConfig;
   readonly llm: LlmConfig;
   readonly vectorStore: VectorStoreConfig;
+  readonly queryResults: QueryResultConfig;
   readonly observability: ObservabilityConfig;
 }
 
@@ -85,6 +90,11 @@ export function createAppConfig(
       indexName: environment.vectorStoreIndex,
       ...(environment.vectorStoreUrl !== undefined
         ? { url: environment.vectorStoreUrl }
+        : {}),
+    },
+    queryResults: {
+      ...(environment.queryResultTtlSeconds !== undefined
+        ? { ttlSeconds: environment.queryResultTtlSeconds }
         : {}),
     },
     observability: {

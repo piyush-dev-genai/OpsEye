@@ -2,6 +2,7 @@ import express, { type Express } from "express";
 
 import type { AppConfig } from "@opseye/config";
 import type { AppLogger } from "@opseye/observability";
+import type { QueryResultRepository } from "@opseye/vector-store";
 
 import { createErrorMiddleware } from "./middleware/error.middleware";
 import { requestIdMiddleware } from "./middleware/request-id.middleware";
@@ -16,6 +17,7 @@ export interface ApiAppDependencies {
   readonly logger: AppLogger;
   readonly ingestPublisher: IngestPublisherService;
   readonly queryOrchestrator: QueryOrchestratorService;
+  readonly queryResultRepository: QueryResultRepository;
 }
 
 export function createApp(dependencies: ApiAppDependencies): Express {
@@ -27,7 +29,11 @@ export function createApp(dependencies: ApiAppDependencies): Express {
   app.use(createHealthRoute(dependencies.appConfig));
   app.use(createIngestRoute(dependencies.ingestPublisher, dependencies.logger));
   app.use(
-    createQueryRoute(dependencies.queryOrchestrator, dependencies.logger),
+    createQueryRoute(
+      dependencies.queryOrchestrator,
+      dependencies.queryResultRepository,
+      dependencies.logger,
+    ),
   );
   app.use(createErrorMiddleware(dependencies.logger));
 

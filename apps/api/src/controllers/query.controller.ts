@@ -67,10 +67,8 @@ export function createQueryController(
       });
 
       response.status(202).json({
-        requestId,
         queryId: result.queryId,
-        status: "accepted",
-        topic: result.topic,
+        status: "queued",
       });
     } catch (error) {
       next(error);

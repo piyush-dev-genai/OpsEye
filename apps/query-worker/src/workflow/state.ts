@@ -1,5 +1,10 @@
 import { Annotation } from "@langchain/langgraph";
-import type { QueryEmbedding, QueryRequest, QueryAnswer } from "@opseye/types";
+import type {
+  QueryAnswerConfidence,
+  QueryEmbedding,
+  QueryExecutionResult,
+  QueryRequest,
+} from "@opseye/types";
 
 export interface RetrievedChunkRecord {
   readonly chunkId: string;
@@ -42,27 +47,9 @@ export interface BuiltContext {
   readonly evidence: readonly ContextEvidence[];
 }
 
-export interface AnswerReference {
-  readonly chunkId: string;
-  readonly service: string;
-  readonly environment: string;
-  readonly timestamp: string;
-  readonly level: string;
-  readonly reason: string;
-  readonly score: number;
-  readonly traceId?: string;
-}
+export type AnswerConfidence = QueryAnswerConfidence;
 
-export type AnswerConfidence = "high" | "medium" | "low";
-
-export interface QueryWorkflowAnswer extends QueryAnswer {
-  readonly confidence: AnswerConfidence;
-  readonly rootCauseHypothesis: string;
-  readonly evidenceSummary: readonly string[];
-  readonly uncertainty: string;
-  readonly recommendedNextSteps: readonly string[];
-  readonly references: readonly AnswerReference[];
-}
+export type QueryWorkflowAnswer = QueryExecutionResult;
 
 export interface QueryWorkflowState {
   readonly queryRequest: QueryRequest;
