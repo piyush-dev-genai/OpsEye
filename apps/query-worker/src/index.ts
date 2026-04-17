@@ -1,16 +1,9 @@
 import { createAppConfig } from "@opseye/config";
 import { createLogger } from "@opseye/observability";
-import {
-  QueryResultRepository,
-  RedisVectorRepository,
-} from "@opseye/vector-store";
+import { QueryResultRepository } from "@opseye/vector-store";
 
 import { createQueryConsumer } from "./consumer/query.consumer";
-import { AnswerService } from "./services/answer.service";
-import { ContextBuilderService } from "./services/context-builder.service";
-import { RerankingService } from "./services/reranking.service";
-import { RetrievalService } from "./services/retrieval.service";
-import { buildQueryGraph } from "./workflow/build-graph";
+import { createQueryRuntime } from "./runtime/query-runtime";
 
 export async function startQueryWorker(): Promise<void> {
   const appConfig = createAppConfig();
@@ -20,29 +13,16 @@ export async function startQueryWorker(): Promise<void> {
     level: appConfig.observability.logLevel,
   });
 
-  const vectorRepository = new RedisVectorRepository({ appConfig });
   const queryResultRepository = new QueryResultRepository({ appConfig });
   await queryResultRepository.ensureConnected();
-  const retrievalService = new RetrievalService(
-    vectorRepository,
-    logger,
-    appConfig,
-  );
-  const rerankingService = new RerankingService(logger);
-  const contextBuilderService = new ContextBuilderService(logger);
-  const answerService = new AnswerService(logger, appConfig);
-  const workflow = buildQueryGraph({
-    retrievalService,
-    rerankingService,
-    contextBuilderService,
-    answerService,
+  const queryRuntime = createQueryRuntime({
     appConfig,
     logger,
   });
   const queryConsumer = createQueryConsumer({
     appConfig,
     logger,
-    workflow,
+    workflow: queryRuntime.workflow,
     queryResultRepository,
   });
 
@@ -57,7 +37,7 @@ export async function startQueryWorker(): Promise<void> {
     logger.info("Received shutdown signal.", { signal });
 
     await queryConsumer.disconnect();
-    await retrievalService.disconnect();
+    await queryRuntime.disconnect();
     await queryResultRepository.disconnect();
 
     logger.info("Query worker stopped.");
@@ -78,6 +58,9 @@ export async function startQueryWorker(): Promise<void> {
 
   await queryConsumer.start();
 }
+
+export * from "./runtime/query-runtime";
+export * from "./services/realtime-query.service";
 
 if (require.main === module) {
   void startQueryWorker().catch((error: unknown) => {

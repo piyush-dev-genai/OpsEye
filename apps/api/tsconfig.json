@@ -18,6 +18,9 @@
       "path": "../../packages/observability"
     },
     {
+      "path": "../../apps/query-worker"
+    },
+    {
       "path": "../../packages/types"
     },
     {

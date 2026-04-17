@@ -2,10 +2,12 @@ import express, { type Express } from "express";
 
 import type { AppConfig } from "@opseye/config";
 import type { AppLogger } from "@opseye/observability";
+import type { RealtimeQueryExecutionService } from "@opseye/query-worker";
 import type { QueryResultRepository } from "@opseye/vector-store";
 
 import { createErrorMiddleware } from "./middleware/error.middleware";
 import { requestIdMiddleware } from "./middleware/request-id.middleware";
+import { createChatRoute } from "./routes/chat.route";
 import { createHealthRoute } from "./routes/health.route";
 import { createIngestRoute } from "./routes/ingest.route";
 import { createQueryRoute } from "./routes/query.route";
@@ -18,6 +20,7 @@ export interface ApiAppDependencies {
   readonly ingestPublisher: IngestPublisherService;
   readonly queryOrchestrator: QueryOrchestratorService;
   readonly queryResultRepository: QueryResultRepository;
+  readonly realtimeQueryExecutionService: RealtimeQueryExecutionService;
 }
 
 export function createApp(dependencies: ApiAppDependencies): Express {
@@ -28,6 +31,12 @@ export function createApp(dependencies: ApiAppDependencies): Express {
   app.use(requestIdMiddleware());
   app.use(createHealthRoute(dependencies.appConfig));
   app.use(createIngestRoute(dependencies.ingestPublisher, dependencies.logger));
+  app.use(
+    createChatRoute(
+      dependencies.realtimeQueryExecutionService,
+      dependencies.logger,
+    ),
+  );
   app.use(
     createQueryRoute(
       dependencies.queryOrchestrator,

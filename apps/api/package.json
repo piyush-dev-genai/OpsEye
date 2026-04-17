@@ -13,6 +13,7 @@
     "@opseye/config": "0.1.0",
     "@opseye/kafka": "0.1.0",
     "@opseye/observability": "0.1.0",
+    "@opseye/query-worker": "0.1.0",
     "@opseye/types": "0.1.0",
     "@opseye/utils": "0.1.0",
     "express": "^5.2.1",

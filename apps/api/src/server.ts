@@ -3,6 +3,7 @@ import type { Server } from "node:http";
 import { createAppConfig } from "@opseye/config";
 import { createProducer } from "@opseye/kafka";
 import { createLogger } from "@opseye/observability";
+import { createQueryRuntime } from "@opseye/query-worker";
 import { QueryResultRepository } from "@opseye/vector-store";
 
 import { createApp } from "./app";
@@ -21,6 +22,10 @@ export async function startServer(): Promise<Server> {
   await producer.connect();
   const queryResultRepository = new QueryResultRepository({ appConfig });
   await queryResultRepository.ensureConnected();
+  const queryRuntime = createQueryRuntime({
+    appConfig,
+    logger,
+  });
 
   const app = createApp({
     appConfig,
@@ -33,6 +38,7 @@ export async function startServer(): Promise<Server> {
       appConfig,
     ),
     queryResultRepository,
+    realtimeQueryExecutionService: queryRuntime.realtimeQueryExecutionService,
   });
 
   const server = await new Promise<Server>((resolve) => {
@@ -71,6 +77,7 @@ export async function startServer(): Promise<Server> {
     });
 
     await producer.disconnect();
+    await queryRuntime.disconnect();
     await queryResultRepository.disconnect();
     logger.info("API server stopped.");
   };

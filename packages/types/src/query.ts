@@ -66,3 +66,56 @@ export interface PersistedQueryResult {
   readonly result?: QueryExecutionResult;
   readonly error?: string;
 }
+
+export type RealtimeQueryStage =
+  | "started"
+  | "retrieving"
+  | "reranking"
+  | "building_context"
+  | "generating_answer"
+  | "completed"
+  | "failed";
+
+export interface RealtimeQueryStartedPayload {
+  readonly query: string;
+  readonly filters?: QueryFilters;
+}
+
+export interface RealtimeQueryRetrievingPayload {
+  readonly embeddingModel: string;
+}
+
+export interface RealtimeQueryRerankingPayload {
+  readonly retrievedCount: number;
+}
+
+export interface RealtimeQueryBuildingContextPayload {
+  readonly retrievedCount: number;
+  readonly rerankedCount: number;
+}
+
+export interface RealtimeQueryGeneratingAnswerPayload {
+  readonly evidenceCount: number;
+}
+
+export interface RealtimeQueryCompletedPayload {
+  readonly result: QueryExecutionResult;
+}
+
+export interface RealtimeQueryFailedPayload {
+  readonly error: string;
+}
+
+export interface RealtimeQueryEvent {
+  readonly queryId: string;
+  readonly stage: RealtimeQueryStage;
+  readonly timestamp: string;
+  readonly payload:
+    | RealtimeQueryStartedPayload
+    | RealtimeQueryRetrievingPayload
+    | RealtimeQueryRerankingPayload
+    | RealtimeQueryBuildingContextPayload
+    | RealtimeQueryGeneratingAnswerPayload
+    | RealtimeQueryCompletedPayload
+    | RealtimeQueryFailedPayload;
+}
