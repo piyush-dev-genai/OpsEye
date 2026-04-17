@@ -6,6 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc -b",
+    "test": "npm --prefix ../../ run test -- packages/retrieval/src/__tests__",
     "typecheck": "tsc -b --pretty"
   },
   "dependencies": {

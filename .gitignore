@@ -6,3 +6,7 @@ coverage
 package-lock.json
 AGENTS.md
 .env
+**/*.js
+**/*.d.ts.map
+**/*.js.map
+**/*.d.ts

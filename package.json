@@ -12,16 +12,22 @@
     "format": "prettier --check .",
     "format:write": "prettier --write .",
     "lint": "eslint . --ext .ts",
+    "test": "vitest run --config vitest.config.ts",
+    "test:watch": "vitest --config vitest.config.ts",
     "typecheck": "tsc -b --pretty"
   },
   "devDependencies": {
     "@eslint/js": "^9.24.0",
     "@types/node": "^22.14.1",
+    "@types/supertest": "^6.0.3",
     "@typescript-eslint/eslint-plugin": "^8.29.0",
     "@typescript-eslint/parser": "^8.29.0",
     "eslint": "^9.24.0",
     "globals": "^16.0.0",
     "prettier": "^3.5.3",
-    "typescript": "^5.8.3"
+    "supertest": "^7.1.4",
+    "typescript": "^5.8.3",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^3.2.4"
   }
 }

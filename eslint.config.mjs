@@ -5,7 +5,7 @@ import globals from "globals";
 
 export default [
   {
-    ignores: ["**/dist/**", "**/*.d.ts", "**/*.tsbuildinfo"],
+    ignores: ["**/dist/**", "**/*.d.ts", "**/*.tsbuildinfo", "**/*.js"],
   },
   eslint.configs.recommended,
   {
