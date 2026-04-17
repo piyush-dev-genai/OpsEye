@@ -1,12 +1,6 @@
-import type { RawLogEvent } from "@opseye/types";
-import { createPrefixedId } from "@opseye/utils";
+import type { LogEvent } from "@opseye/domain";
 
-export interface NormalizedLogRecord extends RawLogEvent {
-  readonly id: string;
-  readonly ingestionTimestamp: string;
-  readonly requestId?: string;
-  readonly correlationId?: string;
-}
+export type NormalizedLogRecord = LogEvent;
 
 export interface EnrichedLogRecord extends NormalizedLogRecord {
   readonly normalizedMessage: string;
@@ -22,48 +16,7 @@ function normalizeWhitespace(value: string): string {
   return value.replace(/\s+/g, " ").trim();
 }
 
-function normalizeIdentifier(value: string | number | boolean): string {
-  return normalizeWhitespace(String(value));
-}
-
-function readAttributeIdentifier(
-  log: RawLogEvent,
-  keys: readonly string[],
-): string | undefined {
-  if (log.attributes === undefined) {
-    return undefined;
-  }
-
-  const normalizedEntries = Object.entries(log.attributes).map(
-    ([key, value]) => [key.toLowerCase(), value] as const,
-  );
-
-  for (const key of keys) {
-    const matchedEntry = normalizedEntries.find(
-      ([entryKey]) => entryKey === key,
-    );
-
-    if (matchedEntry === undefined) {
-      continue;
-    }
-
-    const [, rawValue] = matchedEntry;
-
-    if (
-      rawValue === undefined ||
-      rawValue === null ||
-      (typeof rawValue === "string" && rawValue.trim().length === 0)
-    ) {
-      continue;
-    }
-
-    return normalizeIdentifier(rawValue);
-  }
-
-  return undefined;
-}
-
-function buildAttributeText(log: RawLogEvent): string | undefined {
+function buildAttributeText(log: LogEvent): string | undefined {
   if (log.attributes === undefined) {
     return undefined;
   }
@@ -117,32 +70,6 @@ function extractIncidentSignals(
   return [...signalTokens];
 }
 
-export function mapRawLogToNormalizedLog(
-  log: RawLogEvent,
-  ingestionTimestamp: string,
-): NormalizedLogRecord {
-  const requestId = readAttributeIdentifier(log, [
-    "requestid",
-    "request_id",
-    "request-id",
-    "x-request-id",
-  ]);
-  const correlationId = readAttributeIdentifier(log, [
-    "correlationid",
-    "correlation_id",
-    "correlation-id",
-    "x-correlation-id",
-  ]);
-
-  return {
-    ...log,
-    id: createPrefixedId({ prefix: "log" }),
-    ingestionTimestamp,
-    ...(requestId !== undefined ? { requestId } : {}),
-    ...(correlationId !== undefined ? { correlationId } : {}),
-  };
-}
-
 export function mapNormalizedLogToEnrichedLog(
   log: NormalizedLogRecord,
 ): EnrichedLogRecord {
@@ -161,26 +88,27 @@ export function mapNormalizedLogToEnrichedLog(
     `service=${log.service}`,
     `environment=${log.environment}`,
     `level=${log.level}`,
+    `severity=${log.severity}`,
     ...(log.traceId !== undefined ? [`traceId=${log.traceId}`] : []),
     ...(log.requestId !== undefined ? [`requestId=${log.requestId}`] : []),
     ...(log.correlationId !== undefined
       ? [`correlationId=${log.correlationId}`]
       : []),
-    ...(log.source !== undefined ? [`source=${log.source}`] : []),
+    `source=${log.source}`,
     `message=${log.message}`,
     ...(attributeText !== undefined ? [`attributes=${attributeText}`] : []),
   ].join("\n");
   const retrievalText = [
     `service ${log.service}`,
     `environment ${log.environment}`,
-    `severity ${log.level}`,
+    `severity ${log.severity}`,
     `message ${normalizedMessage}`,
     ...(log.traceId !== undefined ? [`trace ${log.traceId}`] : []),
     ...(log.requestId !== undefined ? [`request ${log.requestId}`] : []),
     ...(log.correlationId !== undefined
       ? [`correlation ${log.correlationId}`]
       : []),
-    ...(log.source !== undefined ? [`source ${log.source}`] : []),
+    `source ${log.source}`,
     ...(attributeText !== undefined ? [`attributes ${attributeText}`] : []),
     ...(incidentSignals.length > 0
       ? [`signals ${incidentSignals.join(" ")}`]

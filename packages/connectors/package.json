@@ -1,0 +1,16 @@
+{
+  "name": "@opseye/connectors",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b --pretty"
+  },
+  "dependencies": {
+    "@opseye/domain": "0.1.0",
+    "@opseye/types": "0.1.0",
+    "@opseye/utils": "0.1.0"
+  }
+}

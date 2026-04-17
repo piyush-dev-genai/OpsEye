@@ -77,9 +77,7 @@ describe("QueryExecutionService", () => {
         finalAnswer: createAnswer(),
       })),
     } satisfies QueryWorkflow;
-    const markProcessing = vi.fn<
-      QueryResultRepository["markProcessing"]
-    >();
+    const markProcessing = vi.fn<QueryResultRepository["markProcessing"]>();
     const markCompleted = vi.fn<QueryResultRepository["markCompleted"]>();
     const markFailed = vi.fn<QueryResultRepository["markFailed"]>();
 
@@ -135,9 +133,7 @@ describe("QueryExecutionService", () => {
         throw new Error("LLM timed out");
       }),
     } satisfies QueryWorkflow;
-    const markProcessing = vi.fn<
-      QueryResultRepository["markProcessing"]
-    >();
+    const markProcessing = vi.fn<QueryResultRepository["markProcessing"]>();
     const markCompleted = vi.fn<QueryResultRepository["markCompleted"]>();
     const markFailed = vi.fn<QueryResultRepository["markFailed"]>();
 
@@ -169,7 +165,9 @@ describe("QueryExecutionService", () => {
       logger: createTestLogger(),
     });
 
-    await expect(service.execute(queryRequest)).rejects.toThrow("LLM timed out");
+    await expect(service.execute(queryRequest)).rejects.toThrow(
+      "LLM timed out",
+    );
     expect(markFailed).toHaveBeenCalledWith(
       queryRequest.id,
       QUERY_EXECUTION_FAILED_MESSAGE,

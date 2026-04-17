@@ -24,6 +24,12 @@
       "path": "../../packages/types"
     },
     {
+      "path": "../../packages/domain"
+    },
+    {
+      "path": "../../packages/connectors"
+    },
+    {
       "path": "../../packages/utils"
     },
     {

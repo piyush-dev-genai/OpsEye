@@ -19,17 +19,22 @@ vi.mock("@opseye/utils", async () => {
 function createEnrichedLogRecord(
   overrides: Partial<EnrichedLogRecord> = {},
 ): EnrichedLogRecord {
+  const level = overrides.level ?? "error";
+  const source = overrides.source ?? "logs.raw";
+
   return {
     id: overrides.id ?? "log-1",
+    eventType: overrides.eventType ?? "log",
+    source,
     ingestionTimestamp:
       overrides.ingestionTimestamp ?? "2026-04-17T12:00:01.000Z",
     message: overrides.message ?? "database timeout while fetching order",
     timestamp: overrides.timestamp ?? "2026-04-17T12:00:00.000Z",
     service: overrides.service ?? "checkout-api",
     environment: overrides.environment ?? "production",
-    level: overrides.level ?? "error",
+    severity: overrides.severity ?? level,
+    level,
     ...(overrides.traceId !== undefined ? { traceId: overrides.traceId } : {}),
-    ...(overrides.source !== undefined ? { source: overrides.source } : {}),
     ...(overrides.attributes !== undefined
       ? { attributes: overrides.attributes }
       : {}),
@@ -39,8 +44,22 @@ function createEnrichedLogRecord(
     ...(overrides.correlationId !== undefined
       ? { correlationId: overrides.correlationId }
       : {}),
+    tags: overrides.tags ?? [
+      "eventType:log",
+      "service:checkout-api",
+      "environment:production",
+      `severity:${level}`,
+      `source:${source}`,
+    ],
+    rawPayload:
+      overrides.rawPayload ??
+      ({
+        message: overrides.message ?? "database timeout while fetching order",
+      } as const),
     normalizedMessage:
       overrides.normalizedMessage ?? "database timeout while fetching order",
+    normalizedSummary:
+      overrides.normalizedSummary ?? "database timeout while fetching order",
     messageTokens: overrides.messageTokens ?? [
       "database",
       "timeout",

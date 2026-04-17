@@ -10,7 +10,9 @@
     "typecheck": "tsc -b --pretty"
   },
   "dependencies": {
+    "@opseye/connectors": "0.1.0",
     "@opseye/config": "0.1.0",
+    "@opseye/domain": "0.1.0",
     "@opseye/kafka": "0.1.0",
     "@opseye/llm": "0.1.0",
     "@opseye/observability": "0.1.0",

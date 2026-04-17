@@ -3,6 +3,8 @@
   "references": [
     { "path": "./packages/config" },
     { "path": "./packages/types" },
+    { "path": "./packages/domain" },
+    { "path": "./packages/connectors" },
     { "path": "./packages/kafka" },
     { "path": "./packages/llm" },
     { "path": "./packages/vector-store" },

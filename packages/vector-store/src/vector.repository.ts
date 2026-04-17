@@ -193,6 +193,12 @@ function buildFilterQuery(filters?: QueryFilters): string {
     clauses.push(`@traceId:{${escapeTagValue(filters.traceId)}}`);
   }
 
+  // if (filters.correlationId !== undefined) {
+  //   clauses.push(
+  //     `@correlationId:{${escapeTagValue(filters.correlationId)}}`,
+  //   );
+  // }
+
   if (
     filters.fromTimestamp !== undefined ||
     filters.toTimestamp !== undefined

@@ -82,15 +82,14 @@ export class QueryResultRepository {
   ): Promise<PersistedQueryResult> {
     const existing = await this.getByQueryId(input.queryId);
     const updatedAt = nowIso();
-    const record: PersistedQueryResult =
-      existing ?? {
-        queryId: input.queryId,
-        query: input.query,
-        requestedAt: input.requestedAt,
-        updatedAt,
-        status: "queued",
-        ...(input.filters !== undefined ? { filters: input.filters } : {}),
-      };
+    const record: PersistedQueryResult = existing ?? {
+      queryId: input.queryId,
+      query: input.query,
+      requestedAt: input.requestedAt,
+      updatedAt,
+      status: "queued",
+      ...(input.filters !== undefined ? { filters: input.filters } : {}),
+    };
 
     const nextRecord: PersistedQueryResult = {
       ...record,

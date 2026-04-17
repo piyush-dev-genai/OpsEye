@@ -60,14 +60,19 @@ export class QueryExecutionService {
         result.finalAnswer,
       );
 
-      queryLogger.info("Completed query workflow.", buildResultLogContext(result));
+      queryLogger.info(
+        "Completed query workflow.",
+        buildResultLogContext(result),
+      );
       queryLogger.debug("Generated grounded query answer.", {
         answer: result.finalAnswer.answer,
         citations: result.finalAnswer.citations.join(","),
       });
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "Unknown query execution error";
+        error instanceof Error
+          ? error.message
+          : "Unknown query execution error";
 
       await this.dependencies.queryResultRepository.markFailed(
         payload.id,
