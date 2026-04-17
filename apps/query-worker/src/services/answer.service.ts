@@ -24,6 +24,10 @@ interface LlmAnswerPayload {
   readonly answer?: string;
 }
 
+function normalizeOptionalString(value: unknown): string | undefined {
+  return typeof value === "string" ? value.trim() : undefined;
+}
+
 function normalizeStringArray(
   value: readonly string[] | undefined,
 ): readonly string[] {
@@ -86,6 +90,13 @@ function toFinalAnswer(
   const recommendedNextSteps = normalizeStringArray(
     payload.recommendedNextSteps,
   );
+
+  const normalizedAnswer = normalizeOptionalString(payload.answer);
+  const normalizedRootCauseHypothesis = normalizeOptionalString(
+    payload.rootCauseHypothesis,
+  );
+  const normalizedUncertainty = normalizeOptionalString(payload.uncertainty);
+
   const references = request.builtContext.evidence.map((item) => ({
     chunkId: item.chunkId,
     service: item.service,
@@ -100,18 +111,22 @@ function toFinalAnswer(
   return {
     queryId: request.queryRequest.id,
     generatedAt: new Date().toISOString(),
-    answer: payload.answer?.trim().length
-      ? payload.answer.trim()
-      : "Unable to produce a grounded answer from the retrieved evidence.",
+    answer:
+      normalizedAnswer !== undefined && normalizedAnswer.length > 0
+        ? normalizedAnswer
+        : "Unable to produce a grounded answer from the retrieved evidence.",
     citations: references.map((reference) => reference.chunkId),
     confidence: normalizeConfidence(payload.confidence),
-    rootCauseHypothesis: payload.rootCauseHypothesis?.trim().length
-      ? payload.rootCauseHypothesis.trim()
-      : "Insufficient retrieved evidence for a grounded RCA hypothesis.",
+    rootCauseHypothesis:
+      normalizedRootCauseHypothesis !== undefined &&
+      normalizedRootCauseHypothesis.length > 0
+        ? normalizedRootCauseHypothesis
+        : "Insufficient retrieved evidence for a grounded RCA hypothesis.",
     evidenceSummary,
-    uncertainty: payload.uncertainty?.trim().length
-      ? payload.uncertainty.trim()
-      : "Evidence is weak or incomplete.",
+    uncertainty:
+      normalizedUncertainty !== undefined && normalizedUncertainty.length > 0
+        ? normalizedUncertainty
+        : "Evidence is weak or incomplete.",
     recommendedNextSteps,
     references,
   };
