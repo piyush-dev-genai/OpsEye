@@ -21,10 +21,11 @@ export async function completeChat(
   options: CompleteChatOptions,
 ): Promise<LlmChatCompletionResult> {
   const client = createOpenAiClient(options);
+  const model = options.model ?? options.appConfig?.llm.chatModel;
 
   return client.createChatCompletion({
     messages: options.messages,
-    ...(options.model !== undefined ? { model: options.model } : {}),
+    ...(model !== undefined ? { model } : {}),
     ...(options.maxTokens !== undefined
       ? { maxTokens: options.maxTokens }
       : {}),

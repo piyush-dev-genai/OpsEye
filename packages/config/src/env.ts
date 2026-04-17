@@ -34,7 +34,8 @@ export interface EnvironmentConfig {
   readonly llmApiKey?: string;
   readonly llmBaseUrl?: string;
   readonly llmApiVersion?: string;
-  readonly llmModel: string;
+  readonly llmChatModel: string;
+  readonly llmEmbeddingModel: string;
   readonly vectorStoreUrl?: string;
   readonly vectorStoreIndex: string;
 }
@@ -248,8 +249,12 @@ export function loadEnvironment(
   const llmApiKey = readString(source, "LLM_API_KEY", issues);
   const llmBaseUrl = readString(source, "LLM_BASE_URL", issues);
   const llmApiVersion = readString(source, "LLM_API_VERSION", issues);
-  const llmModel = readString(source, "LLM_MODEL", issues, {
-    defaultValue: "gpt-4.1-mini",
+  const llmModel = readString(source, "LLM_MODEL", issues);
+  const llmChatModel = readString(source, "LLM_CHAT_MODEL", issues, {
+    defaultValue: llmModel ?? "gpt-4.1-mini",
+  });
+  const llmEmbeddingModel = readString(source, "LLM_EMBEDDING_MODEL", issues, {
+    defaultValue: llmModel ?? "text-embedding-3-small",
   });
   const vectorStoreUrl = readString(source, "VECTOR_STORE_URL", issues);
   const vectorStoreIndex = readString(source, "VECTOR_STORE_INDEX", issues, {
@@ -270,7 +275,8 @@ export function loadEnvironment(
     kafkaBrokers,
     kafkaClientId: requireValue(kafkaClientId, "kafkaClientId"),
     kafkaGroupIdPrefix: requireValue(kafkaGroupIdPrefix, "kafkaGroupIdPrefix"),
-    llmModel: requireValue(llmModel, "llmModel"),
+    llmChatModel: requireValue(llmChatModel, "llmChatModel"),
+    llmEmbeddingModel: requireValue(llmEmbeddingModel, "llmEmbeddingModel"),
     vectorStoreIndex: requireValue(vectorStoreIndex, "vectorStoreIndex"),
     ...(llmApiKey !== undefined ? { llmApiKey } : {}),
     ...(llmBaseUrl !== undefined ? { llmBaseUrl } : {}),

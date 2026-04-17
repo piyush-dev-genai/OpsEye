@@ -208,7 +208,7 @@ function buildFilterQuery(filters?: QueryFilters): string {
     clauses.push(`@timestampEpoch:[${from} ${to}]`);
   }
 
-  return clauses.length > 0 ? clauses.join(" ") : "*";
+  return clauses.length > 0 ? `(${clauses.join(" ")})` : "*";
 }
 
 function parseHashResult(response: unknown): readonly ParsedSearchDocument[] {

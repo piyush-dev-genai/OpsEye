@@ -27,10 +27,11 @@ export async function embedText(
   options: EmbedTextOptions,
 ): Promise<LlmEmbeddingResult> {
   const client = createOpenAiClient(options);
+  const model = options.model ?? options.appConfig?.llm.embeddingModel;
 
   return client.createEmbedding({
     input: options.text,
-    ...(options.model !== undefined ? { model: options.model } : {}),
+    ...(model !== undefined ? { model } : {}),
     ...(options.dimensions !== undefined
       ? { dimensions: options.dimensions }
       : {}),
@@ -42,10 +43,11 @@ export async function embedTexts(
   options: EmbedTextsOptions,
 ): Promise<LlmBatchEmbeddingResult> {
   const client = createOpenAiClient(options);
+  const model = options.model ?? options.appConfig?.llm.embeddingModel;
 
   return client.createEmbeddings({
     input: options.texts,
-    ...(options.model !== undefined ? { model: options.model } : {}),
+    ...(model !== undefined ? { model } : {}),
     ...(options.dimensions !== undefined
       ? { dimensions: options.dimensions }
       : {}),

@@ -21,7 +21,8 @@ export interface LlmConfig {
   readonly apiKey?: string;
   readonly baseUrl?: string;
   readonly apiVersion?: string;
-  readonly model: string;
+  readonly chatModel: string;
+  readonly embeddingModel: string;
 }
 
 export interface VectorStoreConfig {
@@ -68,7 +69,8 @@ export function createAppConfig(
       deadletterEvents: "deadletter.events",
     },
     llm: {
-      model: environment.llmModel,
+      chatModel: environment.llmChatModel,
+      embeddingModel: environment.llmEmbeddingModel,
       ...(environment.llmApiKey !== undefined
         ? { apiKey: environment.llmApiKey }
         : {}),

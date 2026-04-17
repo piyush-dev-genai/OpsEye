@@ -245,7 +245,7 @@ export class OpenAiClient {
     );
     this.apiVersion = options.apiVersion ?? appConfig.llm.apiVersion;
     this.authMode = resolveAuthMode(this.baseUrl, options.authMode);
-    this.defaultModel = options.model ?? appConfig.llm.model;
+    this.defaultModel = options.model ?? appConfig.llm.chatModel;
     this.fetcher = options.fetch ?? globalThis.fetch;
   }
 
