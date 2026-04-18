@@ -29,7 +29,7 @@ function createRerankedChunk(
     chunkId: overrides.chunkId ?? `chunk-${index}`,
     content:
       overrides.content ??
-      `Database timeout on node ${index}. `.repeat(20).trim(),
+      `Error: Database timeout on node ${index}. Connection pool saturation was detected. Informational context that should not dominate the summary.`,
     metadata: {
       service: overrides.metadata?.service ?? "checkout-api",
       environment: overrides.metadata?.environment ?? "production",
@@ -53,43 +53,69 @@ function createRerankedChunk(
 }
 
 describe("ContextBuilderService", () => {
-  it("builds compact evidence summaries from the top ranked chunks", () => {
+  it("builds grouped evidence and a timeline-oriented summary", () => {
     const service = new ContextBuilderService(createTestLogger());
     const queryRequest: QueryRequest = {
       id: "query-1",
       query: "What caused the checkout-api incident?",
       requestedAt: "2026-04-17T10:05:00.000Z",
     };
-    const rerankedChunks = Array.from({ length: 6 }, (_, index) =>
-      createRerankedChunk(index + 1),
-    );
+    const rerankedChunks = [
+      createRerankedChunk(1, {
+        chunkId: "chunk-1",
+        metadata: {
+          service: "checkout-api",
+          environment: "production",
+          timestamp: "2026-04-17T10:01:00.000Z",
+          level: "error",
+          traceId: "trace-1",
+          chunkStrategy: "trace",
+          sourceLogIds: ["log-1"],
+        },
+      }),
+      createRerankedChunk(2, {
+        chunkId: "chunk-2",
+        metadata: {
+          service: "payments-api",
+          environment: "production",
+          timestamp: "2026-04-17T10:02:00.000Z",
+          level: "error",
+          traceId: "trace-2",
+          chunkStrategy: "semantic",
+          sourceLogIds: ["log-2"],
+        },
+      }),
+      createRerankedChunk(3, {
+        chunkId: "chunk-3",
+        metadata: {
+          service: "checkout-api",
+          environment: "production",
+          timestamp: "2026-04-17T10:03:00.000Z",
+          level: "warn",
+          traceId: "trace-1",
+          chunkStrategy: "trace",
+          sourceLogIds: ["log-3"],
+        },
+      }),
+    ];
 
     const result = service.build({
       queryRequest,
       rerankedChunks,
     });
 
-    expect(result.evidence).toHaveLength(5);
-    expect(result.evidence[0]).toMatchObject({
-      chunkId: "chunk-1",
-      service: "checkout-api",
-      environment: "production",
-      level: "error",
-      traceId: "trace-1",
-    });
-    expect(result.evidence[0]?.summary.length).toBeLessThanOrEqual(220);
-    expect(result.evidence[0]?.summary.endsWith("...")).toBe(true);
-    expect(result.evidence[0]?.rationale).toEqual([
-      "checkout-api/production",
-      "error at 2026-04-17T10:01:00.000Z",
-      "score 0.880",
-      "trace trace-1",
+    expect(result.evidence).toHaveLength(3);
+    expect(result.groups).toHaveLength(2);
+    expect(result.groups[0]?.label).toBe("Trace trace-1");
+    expect(result.groups[0]?.itemCount).toBe(2);
+    expect(result.timeline.map((item) => item.chunkId)).toEqual([
+      "chunk-1",
+      "chunk-2",
+      "chunk-3",
     ]);
-    expect(result.summary).toContain(
-      "Query: What caused the checkout-api incident?",
-    );
-    expect(result.summary).toContain("1. [chunk-1]");
-    expect(result.summary).toContain("5. [chunk-5]");
-    expect(result.summary).not.toContain("chunk-6");
+    expect(result.evidence[0]?.summary).toContain("Database timeout");
+    expect(result.summary).toContain("Evidence groups:");
+    expect(result.summary).toContain("Timeline:");
+    expect(result.summary).toContain("Trace trace-1");
   });
 });

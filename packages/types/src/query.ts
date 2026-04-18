@@ -53,6 +53,7 @@ export interface QueryExecutionResult extends QueryAnswer {
   readonly evidenceSummary: readonly string[];
   readonly uncertainty: string;
   readonly recommendedNextSteps: readonly string[];
+  readonly possibleRemediations: readonly string[];
   readonly references: readonly QueryAnswerReference[];
 }
 

@@ -1,9 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  calculateTimeDecayScore,
-  combineWeightedScores,
-} from "@opseye/retrieval";
 import type { AppLogger } from "@opseye/observability";
 import type { QueryRequest } from "@opseye/types";
 
@@ -52,16 +48,6 @@ function createRetrievedChunk(
 describe("RerankingService", () => {
   const logger = createTestLogger();
   const service = new RerankingService(logger);
-  const queryRequest: QueryRequest = {
-    id: "query-1",
-    query: "What caused the checkout-api incident?",
-    requestedAt: "2026-04-17T12:00:00.000Z",
-    filters: {
-      service: "checkout-api",
-      environment: "production",
-      traceId: "trace-1",
-    },
-  };
 
   beforeEach(() => {
     vi.useFakeTimers();
@@ -72,72 +58,158 @@ describe("RerankingService", () => {
     vi.useRealTimers();
   });
 
-  it("ranks chunks by vector score, recency, and metadata adjustments", () => {
-    const primaryChunk = createRetrievedChunk({
-      chunkId: "chunk-primary",
-      metadata: {
+  it("deduplicates near-identical chunks from the same trace context", () => {
+    const queryRequest: QueryRequest = {
+      id: "query-1",
+      query: "What caused the checkout incident?",
+      requestedAt: "2026-04-17T12:00:00.000Z",
+      filters: {
         service: "checkout-api",
         environment: "production",
-        timestamp: "2026-04-17T11:45:00.000Z",
-        level: "error",
-        traceId: "trace-1",
-        chunkStrategy: "trace",
-        sourceLogIds: ["log-1"],
       },
-      vectorScore: 0.9,
-    });
-    const secondaryChunk = createRetrievedChunk({
-      chunkId: "chunk-secondary",
-      metadata: {
-        service: "payments-api",
-        environment: "staging",
-        timestamp: "2026-04-16T00:00:00.000Z",
-        level: "info",
-        traceId: "trace-x",
-        chunkStrategy: "time-window",
-        sourceLogIds: ["log-2"],
-      },
-      vectorScore: 0.95,
-    });
+    };
 
     const result = service.rerank({
       queryRequest,
-      retrievedChunks: [secondaryChunk, primaryChunk],
+      retrievedChunks: [
+        createRetrievedChunk({
+          chunkId: "chunk-1",
+          metadata: {
+            service: "checkout-api",
+            environment: "production",
+            timestamp: "2026-04-17T11:59:10.000Z",
+            level: "error",
+            traceId: "trace-1",
+            chunkStrategy: "trace",
+            sourceLogIds: ["log-1"],
+          },
+          content: "Database timeout while fetching order summary for request 123.",
+          vectorScore: 0.95,
+        }),
+        createRetrievedChunk({
+          chunkId: "chunk-2",
+          metadata: {
+            service: "checkout-api",
+            environment: "production",
+            timestamp: "2026-04-17T11:59:35.000Z",
+            level: "error",
+            traceId: "trace-1",
+            chunkStrategy: "trace",
+            sourceLogIds: ["log-2"],
+          },
+          content: "Database timeout while fetching order summary for request 456.",
+          vectorScore: 0.93,
+        }),
+        createRetrievedChunk({
+          chunkId: "chunk-3",
+          metadata: {
+            service: "payments-api",
+            environment: "production",
+            timestamp: "2026-04-17T11:58:00.000Z",
+            level: "error",
+            traceId: "trace-9",
+            chunkStrategy: "semantic",
+            sourceLogIds: ["log-3"],
+          },
+          content: "Payment gateway retries increased after upstream timeout.",
+          vectorScore: 0.9,
+        }),
+      ],
     });
 
-    const primaryRecency = calculateTimeDecayScore("2026-04-17T11:45:00.000Z", {
-      halfLifeMs: 1000 * 60 * 60 * 12,
-      minScore: 0.1,
-    });
-    const secondaryRecency = calculateTimeDecayScore(
-      "2026-04-16T00:00:00.000Z",
-      {
-        halfLifeMs: 1000 * 60 * 60 * 12,
-        minScore: 0.1,
+    expect(result.map((chunk) => chunk.chunkId)).toEqual(["chunk-1", "chunk-2", "chunk-3"]);
+  });
+
+  it("adds diversity for broad queries while keeping trace-scoped queries focused", () => {
+    const broadQuery: QueryRequest = {
+      id: "query-broad",
+      query: "What caused the production incident?",
+      requestedAt: "2026-04-17T12:00:00.000Z",
+    };
+    const traceScopedQuery: QueryRequest = {
+      id: "query-trace",
+      query: "What failed on trace-1?",
+      requestedAt: "2026-04-17T12:00:00.000Z",
+      filters: {
+        traceId: "trace-1",
+        environment: "production",
       },
-    );
+    };
+    const repeatedServiceChunk = createRetrievedChunk({
+      chunkId: "chunk-checkout-1",
+      metadata: {
+        service: "checkout-api",
+        environment: "production",
+        timestamp: "2026-04-17T11:59:00.000Z",
+        level: "error",
+        traceId: "trace-1",
+        chunkStrategy: "semantic",
+        sourceLogIds: ["log-1"],
+      },
+      content: "Checkout service threw connection timeout errors.",
+      vectorScore: 0.94,
+    });
+    const repeatedServiceChunkTwo = createRetrievedChunk({
+      chunkId: "chunk-checkout-2",
+      metadata: {
+        service: "checkout-api",
+        environment: "production",
+        timestamp: "2026-04-17T11:58:30.000Z",
+        level: "error",
+        traceId: "trace-2",
+        chunkStrategy: "semantic",
+        sourceLogIds: ["log-2"],
+      },
+      content: "Checkout service fallback pool saturation increased latency.",
+      vectorScore: 0.93,
+    });
+    const crossServiceChunk = createRetrievedChunk({
+      chunkId: "chunk-payments-1",
+      metadata: {
+        service: "payments-api",
+        environment: "production",
+        timestamp: "2026-04-17T11:58:45.000Z",
+        level: "error",
+        traceId: "trace-3",
+        chunkStrategy: "semantic",
+        sourceLogIds: ["log-3"],
+      },
+      content: "Payments service reported upstream checkout timeout and retries.",
+      vectorScore: 0.9,
+    });
+    const outsideTraceChunk = createRetrievedChunk({
+      chunkId: "chunk-outside-trace",
+      metadata: {
+        service: "inventory-api",
+        environment: "production",
+        timestamp: "2026-04-17T11:59:10.000Z",
+        level: "error",
+        traceId: "trace-99",
+        chunkStrategy: "trace",
+        sourceLogIds: ["log-4"],
+      },
+      content: "Inventory trace failed independently.",
+      vectorScore: 0.98,
+    });
 
-    expect(result.map((chunk) => chunk.chunkId)).toEqual([
-      "chunk-primary",
-      "chunk-secondary",
-    ]);
-    expect(result[0]?.finalScore).toBeCloseTo(
-      combineWeightedScores([
-        { score: 0.9, weight: 0.65 },
-        { score: primaryRecency, weight: 0.25 },
-        { score: 1, weight: 0.1 },
-      ]),
-    );
-    expect(result[1]?.finalScore).toBeCloseTo(
-      combineWeightedScores([
-        { score: 0.95, weight: 0.65 },
-        { score: secondaryRecency, weight: 0.25 },
-        { score: 0, weight: 0.1 },
-      ]),
-    );
-    expect(result[0]?.rankingReasons).toContain("service filter matched");
-    expect(result[0]?.rankingReasons).toContain("trace matched");
-    expect(result[1]?.rankingReasons).toContain("service filter mismatch");
-    expect(result[1]?.rankingReasons).toContain("trace mismatch");
+    const broadResult = service.rerank({
+      queryRequest: broadQuery,
+      retrievedChunks: [
+        repeatedServiceChunk,
+        repeatedServiceChunkTwo,
+        crossServiceChunk,
+      ],
+    });
+    const traceResult = service.rerank({
+      queryRequest: traceScopedQuery,
+      retrievedChunks: [outsideTraceChunk, repeatedServiceChunk],
+    });
+
+    expect(
+      broadResult.slice(0, 2).map((chunk) => chunk.metadata.service),
+    ).toEqual(["checkout-api", "payments-api"]);
+    expect(broadResult[1]?.rankingReasons).toContain("broad-query service diversity");
+    expect(traceResult[0]?.chunkId).toBe("chunk-checkout-1");
+    expect(traceResult[1]?.rankingReasons).toContain("trace mismatch");
   });
 });

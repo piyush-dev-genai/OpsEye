@@ -52,6 +52,9 @@ function createAnswer(): QueryExecutionResult {
     evidenceSummary: ["chunk-1: connection pool timeouts"],
     uncertainty: "Evidence is limited to the indexed time window.",
     recommendedNextSteps: ["Inspect the primary database latency."],
+    possibleRemediations: [
+      "Consider targeted rollback or traffic reduction after validating the database bottleneck.",
+    ],
     references: [
       {
         chunkId: "chunk-1",

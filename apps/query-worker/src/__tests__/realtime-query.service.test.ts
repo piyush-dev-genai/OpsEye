@@ -103,6 +103,9 @@ function createAnswer(): QueryExecutionResult {
     evidenceSummary: ["chunk-1: connection pool timeouts"],
     uncertainty: "Evidence is limited to the indexed time window.",
     recommendedNextSteps: ["Inspect primary database latency and saturation."],
+    possibleRemediations: [
+      "Reduce pressure on the checkout database after validating the saturation signal.",
+    ],
     references: [
       {
         chunkId: "chunk-1",
@@ -177,6 +180,25 @@ describe("RealtimeQueryExecutionService", () => {
           summary: "database timeout while fetching order summary",
           rationale: ["checkout-api/production"],
           finalScore: 0.89,
+        },
+      ],
+      groups: [
+        {
+          groupKey: "trace:trace-1",
+          label: "Trace trace-1",
+          services: ["checkout-api"],
+          itemCount: 1,
+          items: [],
+        },
+      ],
+      timeline: [
+        {
+          chunkId: "chunk-1",
+          timestamp: "2026-04-18T08:59:00.000Z",
+          service: "checkout-api",
+          level: "error",
+          summary: "database timeout while fetching order summary",
+          traceId: "trace-1",
         },
       ],
     });

@@ -274,6 +274,9 @@ describe.skipIf(!canRunHttpServer)("API routes", () => {
         evidenceSummary: ["chunk-1: connection acquisition timeouts"],
         uncertainty: "Evidence is limited to indexed chunks.",
         recommendedNextSteps: ["Inspect the primary database latency."],
+        possibleRemediations: [
+          "Reduce traffic or rollback the triggering change after validation.",
+        ],
         references: [
           {
             chunkId: "chunk-1",
@@ -360,6 +363,9 @@ describe.skipIf(!canRunHttpServer)("API routes", () => {
             evidenceSummary: ["chunk-1: checkout-api connection timeouts"],
             uncertainty: "Evidence is limited to indexed chunks.",
             recommendedNextSteps: ["Inspect database latency and saturation."],
+            possibleRemediations: [
+              "Reduce traffic or rollback the triggering change after validation.",
+            ],
             references: [
               {
                 chunkId: "chunk-1",
@@ -387,6 +393,8 @@ describe.skipIf(!canRunHttpServer)("API routes", () => {
         builtContext: {
           summary: "summary",
           evidence: [],
+          groups: [],
+          timeline: [],
         },
         finalAnswer: {
           queryId: queryRequest.id,
@@ -398,6 +406,9 @@ describe.skipIf(!canRunHttpServer)("API routes", () => {
           evidenceSummary: ["chunk-1: checkout-api connection timeouts"],
           uncertainty: "Evidence is limited to indexed chunks.",
           recommendedNextSteps: ["Inspect database latency and saturation."],
+          possibleRemediations: [
+            "Reduce traffic or rollback the triggering change after validation.",
+          ],
           references: [
             {
               chunkId: "chunk-1",

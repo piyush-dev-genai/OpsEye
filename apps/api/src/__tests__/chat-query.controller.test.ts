@@ -94,6 +94,7 @@ describe("createChatQueryController", () => {
               evidenceSummary: ["chunk-1: connection pool timeouts"],
               uncertainty: "Evidence is limited to indexed chunks.",
               recommendedNextSteps: ["Inspect database saturation."],
+              possibleRemediations: ["Reduce traffic after validating the bottleneck."],
               references: [
                 {
                   chunkId: "chunk-1",
@@ -121,6 +122,8 @@ describe("createChatQueryController", () => {
           builtContext: {
             summary: "summary",
             evidence: [],
+            groups: [],
+            timeline: [],
           },
           finalAnswer: {
             queryId: queryRequest.id,
@@ -132,6 +135,9 @@ describe("createChatQueryController", () => {
             evidenceSummary: ["chunk-1: connection pool timeouts"],
             uncertainty: "Evidence is limited to indexed chunks.",
             recommendedNextSteps: ["Inspect database saturation."],
+            possibleRemediations: [
+              "Reduce traffic after validating the bottleneck.",
+            ],
             references: [
               {
                 chunkId: "chunk-1",

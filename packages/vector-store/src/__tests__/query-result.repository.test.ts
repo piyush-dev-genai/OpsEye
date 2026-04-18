@@ -124,6 +124,9 @@ describe("QueryResultRepository", () => {
       evidenceSummary: ["chunk-1: connection pool timeouts"],
       uncertainty: "Evidence is limited to the indexed time window.",
       recommendedNextSteps: ["Inspect the checkout database metrics."],
+      possibleRemediations: [
+        "Consider targeted rollback or traffic reduction after validating the bottleneck.",
+      ],
       references: [
         {
           chunkId: "chunk-1",

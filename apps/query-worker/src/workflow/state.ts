@@ -42,9 +42,28 @@ export interface ContextEvidence {
   readonly finalScore: number;
 }
 
+export interface ContextEvidenceGroup {
+  readonly groupKey: string;
+  readonly label: string;
+  readonly services: readonly string[];
+  readonly itemCount: number;
+  readonly items: readonly ContextEvidence[];
+}
+
+export interface ContextTimelineEntry {
+  readonly chunkId: string;
+  readonly timestamp: string;
+  readonly service: string;
+  readonly level: string;
+  readonly summary: string;
+  readonly traceId?: string;
+}
+
 export interface BuiltContext {
   readonly summary: string;
   readonly evidence: readonly ContextEvidence[];
+  readonly groups: readonly ContextEvidenceGroup[];
+  readonly timeline: readonly ContextTimelineEntry[];
 }
 
 export type AnswerConfidence = QueryAnswerConfidence;
